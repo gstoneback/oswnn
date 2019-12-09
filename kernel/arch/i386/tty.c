@@ -16,6 +16,18 @@ static size_t tty_column;
 static uint8_t tty_color;
 static uint16_t* tty_buffer;
  
+void tty_scroll(void) {
+	for(size_t y = 0; y < VGA_HEIGHT-1; y++) {
+		for(size_t x = 0; x < VGA_WIDTH; x++) {
+			const size_t index = y * VGA_WIDTH + x;
+			tty_buffer[index] = tty_buffer[index+VGA_WIDTH];
+		}
+	}
+	for(size_t x = 0; x < VGA_WIDTH; x++) {
+		const size_t index = (VGA_WIDTH-1) * VGA_WIDTH + x;
+		tty_buffer[index] = vga_entry(' ', tty_color);
+	}
+}
 void tty_initialize(void) {
 	tty_row = 0;
 	tty_column = 0;
@@ -40,11 +52,24 @@ void tty_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
  
 void tty_putchar(char c) {
 	unsigned char uc = c;
-	tty_putentryat(uc, tty_color, tty_column, tty_row);
-	if (++tty_column == VGA_WIDTH) {
-		tty_column = 0;
-		if (++tty_row == VGA_HEIGHT)
-			tty_row = 0;
+	switch (uc) {
+		case '\t':
+			tty_column = ((tty_column/4)+1)*4;
+			break;
+		case '\r':
+			tty_column = 0;
+			break;
+		case '\n':
+			tty_column = 0;
+			++tty_row;
+			break;
+		default:
+			tty_putentryat(uc, tty_color, tty_column, tty_row);
+			if (++tty_column == VGA_WIDTH) {
+				tty_column = 0;
+				if (++tty_row == VGA_HEIGHT)
+					tty_row = 0;
+			}
 	}
 }
  

@@ -1,6 +1,6 @@
-DEFAULT_HOST!=../default-host.sh
+DEFAULT_HOST:=$(shell ../default-host.sh)
 HOST?=DEFAULT_HOST
-HOSTARCH!=../target-triplet-to-arch.sh $(HOST)
+HOSTARCH:=$(shell ../target-triplet-to-arch.sh $(HOST))
  
 CFLAGS?=-O2 -g
 CPPFLAGS?=
@@ -54,7 +54,7 @@ all: oswnn.kernel
  
 oswnn.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
-	grub-file --is-x86-multiboot oswnn.kernel
+#grub-file --is-x86-multiboot oswnn.kernel
  
 $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
@@ -74,7 +74,7 @@ install: install-headers install-kernel
  
 install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDEDIR)/.
+	cp -R -p include/. $(DESTDIR)$(INCLUDEDIR)/.
  
 install-kernel: oswnn.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
